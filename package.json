@@ -1,0 +1,28 @@
+{
+  "name": "md-to-html",
+  "version": "1.0.0",
+  "description": "Try to write an MD to HTML plugin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/izph/md-to-html.git"
+  },
+  "keywords": [
+    "markdown"
+  ],
+  "author": "izph",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/izph/md-to-html/issues"
+  },
+  "homepage": "https://github.com/izph/md-to-html#readme",
+  "dependencies": {
+    "webpack": "4.30.0",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.7.2"
+  }
+}
