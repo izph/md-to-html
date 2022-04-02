@@ -1,5 +1,5 @@
-const {resolve} = require('path')
-const MdToHtmlPlugin = require('./plugins/md-to-html-plugin')
+const { resolve } = require('path')
+const MdToHtmlPlugin = require('./plugins/md-to-html-plugin');
 
 const config = {
     // 模式
@@ -13,8 +13,8 @@ const config = {
     // 配置自定义插件
     plugins: [
         new MdToHtmlPlugin({
-            template: resolve(__dirname,'test.md'), // 我们需要解析的文件
-            filename: 'test.html' // 解析后的文件名
+            template: resolve(__dirname, 'notebook.md'), // 我们需要解析的文件
+            filename: 'notebook.html' // 解析后的文件名
         })
     ]
 }

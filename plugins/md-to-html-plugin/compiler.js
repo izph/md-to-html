@@ -1,6 +1,6 @@
-const { randomNum } = require('./util')
+const { guid } = require('./util');
 
-const { basename } = require('path')
+const { basename } = require('path');
 
 // 以空字符串开头，以空格结尾，找到里边的所有字符
 const reg_mark = /^(.+?)\s/;
@@ -33,6 +33,7 @@ function createTree(mdArr) {
     // 去掉\r回车的影响
     mdFragment = mdFragment.replace(/\r/, '');
     // console.log(mdFragment)
+
     // 正则
     const matched = mdFragment.match(reg_mark);
     const matched_link = mdFragment.match(reg_link);
@@ -63,7 +64,7 @@ function createTree(mdArr) {
           _htmlPool[tag].tags = [..._htmlPool[`${tag}-${_key}`], `<${tag}>${tagContent}</${tag}>`]
         } else {
           _lastMark = mark;
-          _key = randomNum();
+          _key = guid();
           _htmlPool[`${tag}-${_key}`] = {
             type: 'single',
             tags: [`<${tag}>${tagContent}</${tag}>`]
@@ -84,7 +85,7 @@ function createTree(mdArr) {
 
           _htmlPool[`ul-${_key}`].tags = [..._htmlPool[`ul-${_key}`].tags, `<${tag}>${tagContent}</${tag}>`]
         } else {
-          _key = randomNum();
+          _key = guid();
           _lastMark = mark;
           // 加一个随机后缀key
           _htmlPool[`ul-${_key}`] = {
@@ -103,7 +104,7 @@ function createTree(mdArr) {
         } else {
           // console.log(_lastMark,mark);
           _lastMark = mark;
-          _key = randomNum();
+          _key = guid();
           _htmlPool[`ol-${_key}`] = {
             type: 'wrap',
             tags: [`<${tag}>${tagContent}</${tag}>`]
@@ -120,7 +121,7 @@ function createTree(mdArr) {
       const input = matched_link['input'];
 
       const link_style = `color: #3489fd;font-weight: 500;text-decoration: none;`
-      _key = randomNum();
+      _key = guid();
       _htmlPool[`a-${_key}`] = {
         type: 'single',
         tags: [`<a href="${link_href}" target="_blank" style="${link_style}">${link_title}</a>`]
@@ -137,7 +138,7 @@ function createTree(mdArr) {
       const img_file = basename(img_src);
       // const img_filename = basename(img_src).split('.')[0]
       //const link_style = `color: #3489fd;font-weight: 500;text-decoration: none;`
-      _key = randomNum();
+      _key = guid();
       _htmlPool[`img-${_key}`] = {
         type: 'single',
         staticSource: {
@@ -156,10 +157,10 @@ function createTree(mdArr) {
 }
 
 // 转成树形结构 或者AST
-function compileHTML(_mdArr) { // _mdArr数组内容
-  // console.log(_mdArr)
+function compileHTML(_templateContentArr) { // _templateContentArr数组内容
+  // console.log(_templateContentArr)
   // 转成树形结构
-  const _htmlPool = createTree(_mdArr)
+  const _htmlPool = createTree(_templateContentArr)
 
   // static资源
   const _staticSource = [];
