@@ -24,6 +24,12 @@ const TAGTYPE_NESTING = 'nesting';
 // 超链接默认样式
 const REG_LINK_STYLE = `color: #3489fd;font-weight: 500;text-decoration: none;`
 
+// 需要替换 模板html文件里的字符串
+const TEMPLATE_MARK = '<!--templateString-->';
+
+// 插件名称
+const PLUGIN_NAME = 'md-to-html-plugin';
+
 module.exports = {
     REG_MARK,
     REG_TITLE,
@@ -33,5 +39,7 @@ module.exports = {
     REG_IMG,
     TAGTYPE_SIMPLE,
     TAGTYPE_NESTING,
-    REG_LINK_STYLE
+    REG_LINK_STYLE,
+    TEMPLATE_MARK,
+    PLUGIN_NAME
 }
