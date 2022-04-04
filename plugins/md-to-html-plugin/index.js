@@ -25,30 +25,26 @@ class MdToHtmlPlugin {
 
       // _assets 打包的资源详情
       const _assets = compilation.assets;
-      console.log("_assets:", _assets)
 
       // fs的api readFileSync 同步读取文件 readFile是异步的
       const templateContent = readFileSync(this.template, 'utf-8') // 目录文件，编码方式
-
-      // console.log(templateContent)
 
       // 找到当前目录下的template.html
       const templateHtml = readFileSync(resolve(__dirname, "template.html"), 'utf-8');
 
       // 将templateContent（md文件的内容） 变为数组
       const templateContentArr = templateContent.split('\n');
-      // console.log(templateContentArr)
 
       // 核心方法： 将数组内容 编译为 html标签   
       const { htmlStr, staticSource } = compileHTML(templateContentArr);
-      // console.log(htmlStr)
+
+      // 将template.html的模板字符串替换
       const fileHtml = templateHtml.replace(TEMPLATE_MARK, htmlStr)
 
       // _assets增加资源，this.filename 就是_assets的一个属性
-
       _assets[this.filename] = {
         //  source不是一个普通的函数，它会把放到_assets[this.filename]对象中
-        //  将资源放到 我们定义filename的html文件中
+        //  将资源放到我们定义filename的html文件中
         source() {
           return fileHtml;
         },
@@ -57,21 +53,20 @@ class MdToHtmlPlugin {
           return fileHtml.length;
         }
       }
-      // console.log(this.template.split('.')[0])
-      // console.log(dirname(this.template.split('.')[0]))
 
+      // 获取md文件所在的目录
       const tplDirName = dirname(this.template);
-      staticSource.map((staticSource) => {
-        const { filename, staticPath } = staticSource;
+      staticSource.map((staticItem) => {
+        const { filename, staticPath } = staticItem;
+        // 拼接md文件引用的静态资源路径
         const staticsourcepath = join(tplDirName, staticPath);
-        const statics = readFileSync(staticsourcepath)
+        // 读取静态资源
+        const statics = readFileSync(staticsourcepath);
+        // _assets增加资源
         _assets[`${filename}`] = {
-          //  source不是一个普通的函数，它会把放到_assets[this.filename]对象中
-          //  将资源放到 我们定义filename的html文件中
           source() {
             return statics;
           },
-          // 资源的长度        
           size() {
             return statics.length;
           }
