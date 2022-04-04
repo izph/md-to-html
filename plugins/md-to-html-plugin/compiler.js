@@ -1,7 +1,5 @@
 const { guid } = require('./util');
-
 const { basename } = require('path');
-
 const {
   REG_MARK,
   REG_TITLE,
@@ -61,19 +59,16 @@ function createTree(tplArr) {
             children: [`<${tag}>${tagContent}</${tag}>`]
           }
         }
-
       }
 
       // 无序列表
       if (REG_DISORDER.test(mark)) {
         //将'- ul第一项\r'中的'- '干掉，最终得到'ul第一项\r'
         const tagContent = input.replace(REG_MARK, '');
-
         const tag = `li`;
         // 上一个是不是`-`
         if (REG_DISORDER.test(lastMark)) {
           // '- ul第i项\r' 放到一起
-
           htmlTree[`ul-${uid}`].children = [...htmlTree[`ul-${uid}`].children, `<${tag}>${tagContent}</${tag}>`]
         } else {
           uid = guid();
@@ -102,35 +97,26 @@ function createTree(tplArr) {
         }
       }
     } else if (matched_link) { // 超链接的处理
-
       // '百度'
       const link_title = matched_link[1];
       // 'http://www.baidu.com'
       const link_href = matched_link[2];
       // '[百度](http://www.baidu.com)'
       const input = matched_link['input'];
-
       const tag = `a`;
-
       uid = guid();
       htmlTree[`${tag}-${uid}`] = {
         type: TAGTYPE_SIMPLE,
         children: [`<${tag} href="${link_href}" target="_blank" style="${REG_LINK_STYLE}">${link_title}</${tag}>`]
       }
     } else if (matched_img) { // 图片的处理
-
       const tag = `img`;
-
       // '图片'
       const img_title = matched_img[1];
       // 'public/testimages.png'
       const img_src = matched_img[2];
-      // '![图片](./testimages.png)'
-      const input = matched_img['input'];
       // 'testimages'
       const img_file = basename(img_src);
-      // const img_filename = basename(img_src).split('.')[0]
-
       uid = guid();
       htmlTree[`${tag}-${uid}`] = {
         type: TAGTYPE_SIMPLE,
@@ -141,8 +127,6 @@ function createTree(tplArr) {
         children: [`<${tag} src="./${img_file}"  alt="${img_title}"></${tag}>`]
       }
     }
-
-
   })
 
   return htmlTree;
@@ -150,13 +134,11 @@ function createTree(tplArr) {
 
 // 转成树形结构 或者AST
 function compileHTML(templateContentArr) { // templateContentArr数组内容
-
   // 转成树形结构
   const htmlTree = createTree(templateContentArr)
 
   // static资源
   const staticSource = [];
-
 
   // 拼接结果
   let htmlStr = '';
@@ -172,13 +154,15 @@ function compileHTML(templateContentArr) { // templateContentArr数组内容
         htmlStr += tag;
       });
     } else if (currItem.type === TAGTYPE_NESTING) { // 外层要套一个标签的，不能直接拼接
-      const outerTag = `<${key.split('-')[0]}>`; // 获取外层的标签，就是htmlTree的key
-      let currStr = "" + outerTag;
+      // 获取外层的标签，就是htmlTree的key
+      const outerTag_Start = `<${key.split('-')[0]}>`;
+      const outerTag_End = `</${key.split('-')[0]}>`;
+      let currStr = "" + outerTag_Start;
       currItem.children.forEach(tag => {
         currStr += tag;
       })
       // 结束标签
-      currStr += outerTag;
+      currStr += outerTag_End;
 
       htmlStr += currStr;
     }
@@ -186,7 +170,6 @@ function compileHTML(templateContentArr) { // templateContentArr数组内容
   }
 
   return { htmlStr, staticSource };
-
 }
 
 module.exports = {

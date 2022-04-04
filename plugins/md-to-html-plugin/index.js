@@ -16,9 +16,6 @@ class MdToHtmlPlugin {
     // 没传filename 默认为 index.html
     this.filename = filename ? filename : 'index.html';
   }
-  // 编译的时候都是在apply里执行
-  // webpack会提供一个apply方法，接受一个编译器compiler
-  // compiler会有钩子hooks，钩子hooks会有一个发布器emit（类型node的EmitterEvent发布订阅）
   apply(compiler) {
     // tap第一个参数是插件的名字，第二个参数是回调函数，回调函数的参数是一个compilation
     compiler.hooks.emit.tap(PLUGIN_NAME, (compilation) => {
@@ -29,14 +26,14 @@ class MdToHtmlPlugin {
       // fs的api readFileSync 同步读取文件 readFile是异步的
       const templateContent = readFileSync(this.template, 'utf-8') // 目录文件，编码方式
 
-      // 找到当前目录下的template.html
-      const templateHtml = readFileSync(resolve(__dirname, "template.html"), 'utf-8');
-
       // 将templateContent（md文件的内容） 变为数组
       const templateContentArr = templateContent.split('\n');
 
       // 核心方法： 将数组内容 编译为 html标签   
       const { htmlStr, staticSource } = compileHTML(templateContentArr);
+
+      // 找到当前目录下的template.html
+      const templateHtml = readFileSync(resolve(__dirname, "template.html"), 'utf-8');
 
       // 将template.html的模板字符串替换
       const fileHtml = templateHtml.replace(TEMPLATE_MARK, htmlStr)
@@ -54,28 +51,30 @@ class MdToHtmlPlugin {
         }
       }
 
-      // 获取md文件所在的目录
-      const tplDirName = dirname(this.template);
-      staticSource.map((staticItem) => {
-        const { filename, staticPath } = staticItem;
-        // 拼接md文件引用的静态资源路径
-        const staticsourcepath = join(tplDirName, staticPath);
-        // 读取静态资源
-        const statics = readFileSync(staticsourcepath);
-        // _assets增加资源
-        _assets[`${filename}`] = {
-          source() {
-            return statics;
-          },
-          size() {
-            return statics.length;
+      // 处理静态文件
+      if (staticSource && staticSource.length > 0) {
+        // 获取md文件所在的目录
+        const tplDirName = dirname(this.template);
+        staticSource.map((staticItem) => {
+          const { filename, staticPath } = staticItem;
+          // 拼接md文件引用的静态资源路径
+          const staticsourcepath = join(tplDirName, staticPath);
+          // 读取静态资源
+          const statics = readFileSync(staticsourcepath);
+          // _assets增加资源
+          _assets[`${filename}`] = {
+            source() {
+              return statics;
+            },
+            size() {
+              return statics.length;
+            }
           }
-        }
-      })
+        })
+      }
 
     })
   }
 }
-
 
 module.exports = MdToHtmlPlugin;
