@@ -2,26 +2,21 @@ const { guid } = require('./util');
 
 const { basename } = require('path');
 
-// 以空字符串开头，以空格结尾，找到里边的所有字符
-const reg_mark = /^(.+?)\s/;
-// 以#号开头的，最终转化成h标签，有可能是1个、2个、3个。。。
-const reg_sharp = /^\#/;
+const {
+  REG_MARK,
+  REG_TITLE,
+  REG_ORDER,
+  REG_DISORDER,
+  REG_LINK,
+  REG_IMG,
+  TAGTYPE_SIMPLE,
+  TAGTYPE_NESTING,
+  REG_LINK_STYLE
+} = require('./constant');
 
-// 以-开头的  最终转化成li
-const reg_crossbar = /^\-/;
-
-// 以数字开头 有序列表
-const reg_number = /^\d/;
-
-// 匹配 []() 超链接
-const reg_link = /^\[(.+?)\]\((.+?)\)$/;
-
-// 匹配 []() 超链接
-const reg_img = /^\!\[(.+?)\]\((.+?)\)$/;
-
-function createTree(mdArr) {
+function createTree(tplArr) {
   // 存放结果
-  let _htmlPool = {};
+  let _htmlTree = {};
 
   // 上一个标识符
   let _lastMark = '';
@@ -29,85 +24,85 @@ function createTree(mdArr) {
   let _key = 0;
 
   // 字符串相关的东西最好不要做封装，老老实实的写最好，不同的标签有不同的处理方法
-  mdArr.forEach((mdFragment) => {
+  tplArr.forEach((tplItem) => {
     // 去掉\r回车的影响
-    mdFragment = mdFragment.replace(/\r/, '');
-    // console.log(mdFragment)
+    tplItem = tplItem.replace(/\r/, '');
+    // console.log(tplItem)
 
     // 正则
-    const matched = mdFragment.match(reg_mark);
-    const matched_link = mdFragment.match(reg_link);
-    const matched_img = mdFragment.match(reg_img);
+    const matched_mark = tplItem.match(REG_MARK);
+    const matched_link = tplItem.match(REG_LINK);
+    const matched_img = tplItem.match(REG_IMG);
     // 匹配到md语法，不为空
-    if (matched) {
-      // matched[1]就是去掉空格的 md标识
-      const mark = matched[1]
+    if (matched_mark) {
+      // matched_mark[1]就是去掉空格的 md标识
+      const mark = matched_mark[1];
 
-      //input就是匹配到的md语法，input: '# h1标题\r'
-      const input = matched['input']
+      // input就是匹配到的md语法，input: '# h1标题\r'
+      const input = matched_mark['input'];
       // console.log(input)
 
       // 匹配到#号的
-      if (reg_sharp.test(mark)) {
-        // console.log(matched);
+      if (REG_TITLE.test(mark)) {
+        // console.log(matched_mark);
 
         // 根据#号的个数  判断是h几
         const tag = `h${mark.length}`;
 
         //将'# h1标题\r'中的'# '干掉，最终得到'h1标题\r'
-        const tagContent = input.replace(reg_mark, '')
+        const tagContent = input.replace(REG_MARK, '')
 
         // console.log(tag, tagContent);
 
-        // reg_sharp.test(_lastMark)
+        // REG_TITLE.test(_lastMark)
         if ((_lastMark === mark)) {
-          _htmlPool[tag].tags = [..._htmlPool[`${tag}-${_key}`], `<${tag}>${tagContent}</${tag}>`]
+          _htmlTree[tag].children = [..._htmlTree[`${tag}-${_key}`], `<${tag}>${tagContent}</${tag}>`]
         } else {
           _lastMark = mark;
           _key = guid();
-          _htmlPool[`${tag}-${_key}`] = {
-            type: 'single',
-            tags: [`<${tag}>${tagContent}</${tag}>`]
+          _htmlTree[`${tag}-${_key}`] = {
+            type: TAGTYPE_SIMPLE,
+            children: [`<${tag}>${tagContent}</${tag}>`]
           }
         }
 
       }
 
       // 无序列表
-      if (reg_crossbar.test(mark)) {
+      if (REG_DISORDER.test(mark)) {
         //将'- ul第一项\r'中的'- '干掉，最终得到'ul第一项\r'
-        const tagContent = input.replace(reg_mark, '');
+        const tagContent = input.replace(REG_MARK, '');
         // console.log(tagContent);
         const tag = `li`;
         // 上一个是不是`-`
-        if (reg_crossbar.test(_lastMark)) {
+        if (REG_DISORDER.test(_lastMark)) {
           // '- ul第i项\r' 放到一起
 
-          _htmlPool[`ul-${_key}`].tags = [..._htmlPool[`ul-${_key}`].tags, `<${tag}>${tagContent}</${tag}>`]
+          _htmlTree[`ul-${_key}`].children = [..._htmlTree[`ul-${_key}`].children, `<${tag}>${tagContent}</${tag}>`]
         } else {
           _key = guid();
           _lastMark = mark;
           // 加一个随机后缀key
-          _htmlPool[`ul-${_key}`] = {
-            type: 'wrap', // 外层需要一个ul
-            tags: [`<${tag}>${tagContent}</${tag}>`]
+          _htmlTree[`ul-${_key}`] = {
+            type: TAGTYPE_NESTING, // 外层需要一个ul
+            children: [`<${tag}>${tagContent}</${tag}>`]
           }
         }
       }
 
       // 有序列表  是不是以数字开头的，如果是数字开头，没有.呢？
-      if (reg_number.test(mark)) {
-        const tagContent = input.replace(reg_mark, '');
+      if (REG_ORDER.test(mark)) {
+        const tagContent = input.replace(REG_MARK, '');
         const tag = `li`;
-        if (reg_number.test(_lastMark)) {
-          _htmlPool[`ol-${_key}`].tags = [..._htmlPool[`ol-${_key}`].tags, `<${tag}>${tagContent}</${tag}>`]
+        if (REG_ORDER.test(_lastMark)) {
+          _htmlTree[`ol-${_key}`].children = [..._htmlTree[`ol-${_key}`].children, `<${tag}>${tagContent}</${tag}>`]
         } else {
           // console.log(_lastMark,mark);
           _lastMark = mark;
           _key = guid();
-          _htmlPool[`ol-${_key}`] = {
-            type: 'wrap',
-            tags: [`<${tag}>${tagContent}</${tag}>`]
+          _htmlTree[`ol-${_key}`] = {
+            type: TAGTYPE_NESTING,
+            children: [`<${tag}>${tagContent}</${tag}>`]
           }
         }
       }
@@ -120,14 +115,17 @@ function createTree(mdArr) {
       // '[百度](http://www.baidu.com)'
       const input = matched_link['input'];
 
-      const link_style = `color: #3489fd;font-weight: 500;text-decoration: none;`
+      const tag = `a`;
+
       _key = guid();
-      _htmlPool[`a-${_key}`] = {
-        type: 'single',
-        tags: [`<a href="${link_href}" target="_blank" style="${link_style}">${link_title}</a>`]
+      _htmlTree[`${tag}-${_key}`] = {
+        type: TAGTYPE_SIMPLE,
+        children: [`<${tag} href="${link_href}" target="_blank" style="${REG_LINK_STYLE}">${link_title}</${tag}>`]
       }
-    } else if (matched_img) { // 超链接的处理
-      console.log(matched_img)
+    } else if (matched_img) { // 图片的处理
+      // console.log(matched_img)
+      const tag = `img`;
+
       // '图片'
       const img_title = matched_img[1];
       // 'public/testimages.png'
@@ -137,57 +135,61 @@ function createTree(mdArr) {
       // 'testimages'
       const img_file = basename(img_src);
       // const img_filename = basename(img_src).split('.')[0]
-      //const link_style = `color: #3489fd;font-weight: 500;text-decoration: none;`
+
       _key = guid();
-      _htmlPool[`img-${_key}`] = {
-        type: 'single',
+      _htmlTree[`${tag}-${_key}`] = {
+        type: TAGTYPE_SIMPLE,
         staticSource: {
           filename: img_file,
           staticPath: img_src
         },
-        tags: [`<img src="./${img_file}"  alt="${img_title}"></img>`]
+        children: [`<${tag} src="./${img_file}"  alt="${img_title}"></${tag}>`]
       }
     }
 
 
   })
 
-  // console.log(_htmlPool);
-  return _htmlPool;
+  // console.log(_htmlTree);
+  return _htmlTree;
 }
 
 // 转成树形结构 或者AST
 function compileHTML(_templateContentArr) { // _templateContentArr数组内容
   // console.log(_templateContentArr)
+
   // 转成树形结构
-  const _htmlPool = createTree(_templateContentArr)
+  const _htmlTree = createTree(_templateContentArr)
+  // console.log(_htmlTree);
 
   // static资源
   const _staticSource = [];
 
-  // console.log(_htmlPool);
+
   // 拼接结果
   let _htmlStr = '';
+
   // 保存当前遍历到的 key
-  let item;
-  for (let k in _htmlPool) {
-    // console.log(k, _htmlPool[k]);
-    item = _htmlPool[k];
-    _htmlPool[k]?.staticSource && _staticSource.push(_htmlPool[k]?.staticSource)
+  let currItem;
+  for (let key in _htmlTree) {
+    // console.log(key, _htmlTree[key]);
+    currItem = _htmlTree[key];
+    _htmlTree[key]?.staticSource && _staticSource.push(_htmlTree[key]?.staticSource)
     // 等于single，直接拼接
-    if (item.type === 'single') {
-      item.tags.forEach(tag => {
+    if (currItem.type === TAGTYPE_SIMPLE) {
+      currItem.children.forEach(tag => {
         _htmlStr += tag;
       });
-    } else if (item.type === 'wrap') { // 外层要套一个标签的，不能直接拼接
-      let _list = `<${k.split('-')[0]}>`; // 获取外层的标签，就是_htmlPool的key
-      item.tags.forEach(tag => {
-        _list += tag;
+    } else if (currItem.type === TAGTYPE_NESTING) { // 外层要套一个标签的，不能直接拼接
+      const outerTag = `<${key.split('-')[0]}>`; // 获取外层的标签，就是_htmlTree的key
+      let currStr = "" + outerTag;
+      currItem.children.forEach(tag => {
+        currStr += tag;
       })
       // 结束标签
-      _list += `</${k.split('-')[0]}>`;
+      currStr += outerTag;
 
-      _htmlStr += _list;
+      _htmlStr += currStr;
     }
 
   }

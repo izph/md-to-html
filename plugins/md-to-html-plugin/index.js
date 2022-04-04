@@ -27,7 +27,7 @@ class MdToHtmlPlugin {
 
       // _assets 打包的资源详情
       const _assets = compilation.assets;
-      // console.log(_assets)
+      console.log("_assets:", _assets)
 
       // fs的api readFileSync 同步读取文件 readFile是异步的
       const _templateContent = readFileSync(this.template, 'utf-8') // 目录文件，编码方式
@@ -43,7 +43,7 @@ class MdToHtmlPlugin {
 
       // 核心方法： 将数组内容 编译为 html标签   
       const { _htmlStr, _staticSource } = compileHTML(_templateContentArr);
-      console.log(_htmlStr)
+      // console.log(_htmlStr)
       const _fileHtml = _templateHtml.replace(TEMPLATE_MARK, _htmlStr)
 
       // _assets增加资源，this.filename 就是_assets的一个属性
